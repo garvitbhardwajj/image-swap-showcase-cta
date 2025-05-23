@@ -1,43 +1,121 @@
+
 import React, { useState } from 'react';
 import CameraCapture from './CameraCapture';
+
 interface VirtualTryOnProps {
   onClose: () => void;
 }
+
 const VirtualTryOn = ({
   onClose
 }: VirtualTryOnProps) => {
   const [dragOver, setDragOver] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [showTryOnResult, setShowTryOnResult] = useState(false); // New state for showing the try-on result
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(true);
   };
+
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
   };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     // Handle file drop logic here
     console.log('File dropped');
   };
+
   const handleCapturePhoto = () => {
     setShowCamera(true);
   };
+
   const handlePhotoCaptured = (imageData: string) => {
     setCapturedImage(imageData);
     setShowCamera(false);
   };
+
   const handleCameraClose = () => {
     setShowCamera(false);
+  };
+
+  const handleApplyTryOn = () => {
+    setShowTryOnResult(true);
+  };
+
+  const handleReturnToCapture = () => {
+    setShowTryOnResult(false);
   };
 
   // If camera is active, show the camera component
   if (showCamera) {
     return <CameraCapture onCapture={handlePhotoCaptured} onClose={handleCameraClose} />;
   }
+
+  // If showing the virtual try-on result
+  if (showTryOnResult) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl w-full max-h-[95vh] overflow-y-auto mx-4">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Virtual Try-On Result</h2>
+              <p className="text-xs text-gray-600">Here's how the outfit looks on you</p>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Try-on Result Content */}
+          <div className="p-4">
+            <div className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden mb-4">
+              {/* This is where the actual try-on would happen. For now, we show a default image */}
+              <img 
+                src="https://g.sdlcdn.com/imgs/k/w/1/Leotude-Cotton-Blend-Oversized-Fit-SDL726045111-1-96fd0.jpg" 
+                alt="Virtual try-on result" 
+                className="w-full h-full object-cover" 
+              />
+            </div>
+            
+            <div className="mt-4 bg-gray-50 rounded-lg p-3 mb-4">
+              <h4 className="font-medium text-gray-900 mb-1 text-sm">How does it look?</h4>
+              <p className="text-xs text-gray-600">
+                This is a preview of how the outfit would look on you. In the full version, 
+                you'd see your actual photo with the product.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 mt-4">
+              <button 
+                onClick={handleReturnToCapture} 
+                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors"
+              >
+                Try Another Photo
+              </button>
+              <button 
+                onClick={onClose}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium text-sm hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default view (upload/take photo)
   return <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl w-full max-h-[95vh] overflow-y-auto mx-4">
         {/* Header */}
@@ -63,7 +141,10 @@ const VirtualTryOn = ({
                 <button onClick={() => setCapturedImage(null)} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors">
                   Retake Photo
                 </button>
-                <button className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium text-sm hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md">
+                <button 
+                  onClick={handleApplyTryOn}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-medium text-sm hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md"
+                >
                   Apply Try-On
                 </button>
               </div>
@@ -110,7 +191,11 @@ const VirtualTryOn = ({
             <button onClick={onClose} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors">
               Cancel
             </button>
-            <button disabled={!capturedImage} className={`flex-1 py-3 rounded-lg font-medium text-sm ${capturedImage ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md" : "bg-gray-200 text-gray-400"}`}>
+            <button 
+              disabled={!capturedImage} 
+              onClick={capturedImage ? handleApplyTryOn : undefined}
+              className={`flex-1 py-3 rounded-lg font-medium text-sm ${capturedImage ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md" : "bg-gray-200 text-gray-400"}`}
+            >
               Continue
             </button>
           </div>
@@ -118,4 +203,5 @@ const VirtualTryOn = ({
       </div>
     </div>;
 };
+
 export default VirtualTryOn;
